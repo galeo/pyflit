@@ -42,13 +42,14 @@ See the [[http://blog.galeo.me/post/29404048904/pyflit-api-quick-reference][PyFl
 
 ** Multiple URLs fetching
    You can just call `flit.flit_tasks()` to fetch multiple URLs with specified
-   working thread number and process the data chunk at the same time.
-    
+   working thread number, a generator will be returned and you can iterate
+   it to process the data chunks.
+   
    Example:
    #+BEGIN_SRC python 
      from pyflit import flit
      
-     def chunk_process_func(chunk):
+     def chunk_process(chunk):
          """Output chunk information.
          """
          print "Status_code: %s\n%s\n%s \nRead-Size: %s\nHistory: %s\n"%(
@@ -61,7 +62,9 @@ See the [[http://blog.galeo.me/post/29404048904/pyflit-api-quick-reference][PyFl
      links = ['http://www.domain.com/post/%d/'%i for i in xrange(100, 200)]
      thread_number = 5
      opener = flit.get_opener([handlers [, headers [, proxies]]])
-     flit.flit_tasks(links, thread_number, chunk_process_func, opener)
+     chunks = flit.flit_tasks(links, thread_number, opener)
+     for chunk in chunks:
+         chunk_process(chunk)
    #+END_SRC
   
 ** Multiple segment file downloading

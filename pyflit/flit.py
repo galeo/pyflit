@@ -313,12 +313,9 @@ class MultiTasking(object):
         for _ in xrange(self._threads_number):
             self.queue_task.put(None)
 
-    def __call__(self, chunk_process_func, tasks=[]):
+    def __call__(self, tasks=[]):
         """
         Arguments:
-        - `chunk_process_func`: function, data chunk process function,
-                                it has an dict argument `chunk`,
-                                see PyFlitRequest.build_resp().
         - `tasks`: list, HTTP URLs to fetch.
         """
         self._push_tasks(tasks)
@@ -331,10 +328,11 @@ class MultiTasking(object):
 
         while 1:
             chunk = self.queue_chunk.get()
-            if not chunk:
+            if chunk:
+                self.queue_chunk.task_done()
+                yield chunk
+            else:
                 break
-            chunk_process_func(chunk) # call chunk process function
-            self.queue_chunk.task_done()
             time.sleep(0.1)
         self.queue_chunk.task_done()
 
@@ -458,21 +456,19 @@ class MultiSegmenting(object):
             utils.progressbar(url_size, finished_size, 100)
 
 
-def flit_tasks(tasks, threads_number, chunk_process_func, opener=get_opener()):
+def flit_tasks(tasks, threads_number, opener=get_opener()):
     """Multiple tasks downloading and process the data chunk, mostly used
     when grabbing amount of web pages.
     
     Arguments:
     - `tasks`: list, HTTP URLs to fetch.
     - `thread_number`: int, number of threads to download.
-    - `chunk_process_func`: function, data chunk process function,
-                            it has an dict argument `chunk`,
-                            see PyFlitRequest.build_resp().
     - `opener`: OpenerDirector object, call its open() method to open url request.
     """
     request = PyFlitRequest(opener)
     flitter = MultiTasking(threads_number, request.get_url_chunk)
-    flitter(chunk_process_func, tasks)
+    chunks = flitter(tasks)
+    return chunks
 
 def flit_segments(url_req, segment_number=2, opener=get_opener()):
     """Multiple segment file downloading, a replacement of wget. ;-)
