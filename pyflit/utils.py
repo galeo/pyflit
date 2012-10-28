@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Utility functions. 
+Utility functions.
 """
 
 import urllib2
@@ -18,9 +18,10 @@ import time
 
 import pprint
 
+
 class ContentEncodingProcessor(urllib2.BaseHandler):
     """
-    HTTP handler to add gzip/deflate/bzip2 capabilities to urllib2 requests. 
+    HTTP handler to add gzip/deflate/bzip2 capabilities to urllib2 requests.
     """
     def deflate(self, data):
         """
@@ -31,12 +32,12 @@ class ContentEncodingProcessor(urllib2.BaseHandler):
             return zlib.decompress(data, -zlib.MAX_WBITS)
         except zlib.error:
             return zlib.decompress(data)
-    
+
     # add headers to requests
     def http_request(self, req):
         req.add_header("Accept-Encoding", "gzip, deflate")
         return req
- 
+
     # decode
     def http_response(self, req, resp):
         old_resp = resp
@@ -53,18 +54,20 @@ class ContentEncodingProcessor(urllib2.BaseHandler):
             gz = bz2.decompress(resp.read())
 
         if gz:
-            resp = urllib2.addinfourl(gz, 
-                                      old_resp.headers, 
-                                      old_resp.url, 
+            resp = urllib2.addinfourl(gz,
+                                      old_resp.headers,
+                                      old_resp.url,
                                       old_resp.code)
             resp.msg = old_resp.msg
         return resp
+
 
 class HTTPRedirectHandler(urllib2.HTTPRedirectHandler):
     """HTTP redirect handler."""
     def http_error_301(self, req, fp, code, msg, headers):
         pass
     http_error_302 = http_error_303 = http_error_307 = http_error_301
+
 
 def progressbar(total_volume, completed_volume, progress=0):
     """A simple progressbar.
@@ -77,13 +80,15 @@ def progressbar(total_volume, completed_volume, progress=0):
     progress = completed_volume / float(total_volume) * 100
     base = get_terminal_size()[1] / 2
     current = int(progress / 100 * base)
-    info = u'\r[ %s%s Total: %-8d Completed: %.2f%% ]'%(current*'#',
-                                                        (base-current)*' ',
-                                                        total_volume,
-                                                        progress)
+    info = u'\r[ %s%s Total: %-8d Completed: %.2f%% ]' % (
+        current * '#',
+        (base - current) * ' ',
+        total_volume,
+        progress)
     sys.stdout.write(info)
     sys.stdout.flush()
     time.sleep(0.3)
+
 
 def get_terminal_size(fd=1):
     """
@@ -96,14 +101,18 @@ def get_terminal_size(fd=1):
     hw = (0, 0)
     if os.isatty(fd):
         try:
-            import fcntl, termios, struct
-            hw = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+            import fcntl
+            import termios
+            import struct
+            hw = struct.unpack('hh',
+                               fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
         except:
             try:
                 hw = (os.environ['LINES'], os.environ['COLUMNS'])
             except:
                 pass
     return hw
+
 
 def dict_list_reverse(dict_list):
     """
@@ -117,6 +126,7 @@ def dict_list_reverse(dict_list):
             if not val.startswith('\\'):
                 dict_rev[val.upper()] = key
     return dict_rev
+
 
 class DictDotLookup(object):
     """

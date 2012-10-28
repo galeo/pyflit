@@ -7,7 +7,7 @@ import urllib2
 from urlparse import urlparse, urljoin, urlsplit
 import time
 
-# multi threading support 
+# multi threading support
 from threading import Thread
 from Queue import Queue
 
@@ -39,11 +39,12 @@ def get_opener(handlers=[], headers={}, proxies={}):
     _handlers.extend(handlers)
 
     # proxy handler
-    http_proxy = proxies or settings.get('allow_proxy') and settings.get('proxies', None)
+    http_proxy = proxies or \
+        settings.get('allow_proxy') and settings.get('proxies', None)
     if http_proxy:
         try:
             _handlers.append(urllib2.ProxyHandler(http_proxy))
-        except Exception as e:
+        except Exception, e:
             print "==> Waring: proxy invalid, please check."
             print e
 
@@ -68,39 +69,42 @@ def get_opener(handlers=[], headers={}, proxies={}):
     if _headers:
         normal_keys = [k.capitalize() for k in _headers]
         for key, val in opener.addheaders[:]:
-            # default key, value: 'User-agent', 'Python-urllib/2.7', see python doc
-            if key not in normal_keys: # list search
+            # default key, value: 'User-agent', 'Python-urllib/2.7'
+            # see python doc
+            if key not in normal_keys:  # list search
                 continue
             opener.addheaders.remove((key, val))
         # Extend `addheaders` of the opener, dict to tuple list
         opener.addheaders.extend(_headers.items())
-        
+
     return opener
 
 
 class PyFlitRequest(object):
     """A simple class to process HTTP url requests, e.g. get the http response,
-    process the url content, and more.    
+    process the url content, and more.
     """
     def __init__(self, opener, config=settings):
         """
         Arguments:
-        - `opener`: OpenerDirector object, call its open() method to open url request.
+        - `opener`: OpenerDirector object,
+                    call its open() method to open url request.
         - `config`: dictionary, a bunch of settings, see the config module.
         """
-        
+
         self._opener = opener
-        
+
         # Configurations for the request
         self.config = dict(config or [])
-    
+
     def build_resp(self, resp, is_error):
-        """Build URL response to generate a dictionary with its original url address,
-        status code, headers, content, charset, and the response itself if error occurred.
+        """Build URL response to generate a dictionary with
+        its original url address, status code, headers, content,
+        charset, and the response itself if error occurred.
 
         Arguments:
         - `resp`: HTTPResponse, urllib2.Response object.
-        - `is_error`: Boolean, flag to tell whether error occurred. 
+        - `is_error`: Boolean, flag to tell whether error occurred.
         """
         def build(resp, is_error=False):
             response = dict()
@@ -114,13 +118,13 @@ class PyFlitRequest(object):
             if is_error:
                 response['error'] = resp
             return response
-        
+
         history = []
 
         r = build(resp, is_error)
 
         rurl = r.get('url')
-        status_code = r.get('status_code') 
+        status_code = r.get('status_code')
         headers = r.get('headers')
         if status_code in REDIRECT_STATE:
             url_re = headers.get('location', None)
@@ -129,33 +133,33 @@ class PyFlitRequest(object):
                   (not (rurl == url_re)) and
                   ('location' in headers)):
                 r.get('fo').close()
-                
+
                 if not len(history) < self.config.get('max_redirects'):
                     raise TooManyRedirects()
 
                 history.append(r)
-                
+
                 # Handle redirection without scheme
                 if url_re.startswith('//'):
                     parsed_url = urlparse(rurl)
-                    url_re = '%s:%s'%(parsed_url.scheme, rurl)
+                    url_re = '%s:%s' % (parsed_url.scheme, rurl)
                     print url_re
                 # Facilitate non-RFC2616-compliant 'location' headers
                 # (e.g. '/path/to/resource' instead of
                 #  'http://domain.top-level-domain/path/to/resource')
                 if not urlparse(url_re).netloc:
-                    url_re = urljoin(rurl, urllib.quote(urllib.unquote(url_re)))
+                    url_re = urljoin(rurl,
+                                     urllib.quote(urllib.unquote(url_re)))
                     print url_re
                 r = self.get_url_chunk(url_re)
                 rurl = r.get('url')
                 status_code = r.get('status_code')
                 headers = r.get('headers')
-                
+
             r['history'] = history
-        
+
         return r
 
-    
     def get_url_response(self, url_req):
         """Send HTTP URL request, return the response
         with a flag to check if error occurs.
@@ -164,13 +168,14 @@ class PyFlitRequest(object):
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
         is_error = False
-        
+
         if not url_req:
             raise URLRequired
-        
+
         try:
             try:
-                resp = self._opener.open(url_req, timeout=self.config.get('timeout'))
+                resp = self._opener.open(url_req,
+                                         timeout=self.config.get('timeout'))
             except TypeError, err:
                 if not 'timeout' in str(err):
                     raise
@@ -179,7 +184,7 @@ class PyFlitRequest(object):
                     socket.setdefaulttimeout(self.config.get('timeout'))
 
                 resp = self._opener.open(url_req)
-                
+
                 if self.config.get('timeout_fallback'):
                     socket.setdefaulttimeout(old_timeout)
         except (urllib2.HTTPError, urllib2.URLError), why:
@@ -190,7 +195,6 @@ class PyFlitRequest(object):
             return (why, is_error)
         else:
             return (resp, is_error)
-
 
     def get_url_chunk(self, url_req):
         """Open HTTP URL and return the data chunk dictionary,
@@ -205,35 +209,37 @@ class PyFlitRequest(object):
 
     def get_url_headers(self, url_req):
         """Send HTTP URL and return its HTTP response headers.
-        
+
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
         resp, is_error = self.get_url_response(url_req)
         url_headers = resp.info()
         return url_headers
-        
+
     def get_url_size(self, url_req):
-        """Get url content length from http response headers or 0 if not exists.
+        """Get url content length from http response headers
+        or 0 if not exists.
 
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
         headers = self.get_url_headers(url_req)
         content_length = headers.getheaders('Content-Length')
-        length =  content_length and int(content_length[0]) or 0
+        length = content_length and int(content_length[0]) or 0
         return length
 
     def get_url_file_name(self, url_req):
         """Get output file name from the URL response headers or the URL.
-        
+
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
         resp, is_error = self.get_url_response(url_req)
         headers = resp.info()
         if 'Content-Disposition' in headers:
-            cd = dict(map(lambda x: x.strip().split('=') if '=' in x else (x.strip(),''),
+            cd = dict(map(lambda x: x.strip().split('=')
+                          if '=' in x else (x.strip(), ''),
                           headers['Content-Disposition'].split(';')))
             if 'filename' in cd:
                 filename = cd['filename'].strip("\"'")
@@ -245,11 +251,12 @@ class PyFlitRequest(object):
 class MultiTaskingThread(Thread):
     """Multiple tasks downloading thread for fetching URLs.
     """
-    
+
     def __init__(self, opener, queue_task, queue_chunk):
         """
         Arguments:
-        - `opener`: function object, open the URL request and return data chunk,
+        - `opener`: function object,
+                    open the URL request and return data chunk,
                     e.g. PyFlitRequest.get_url_chunk() method.
         - `queue_task`: Queue, tasks queue.
         - `queue_chunk`: Queue, data chunk queue.
@@ -278,14 +285,14 @@ class MultiTaskingThread(Thread):
                 if chunk:
                     self._queue_chunk.put(chunk)
             except:
-                print "==> Error fetching: %s"%url_req
+                print "==> Error fetching: %s" % url_req
                 pass
             finally:
                 # signals to queue that job is done
                 self._queue_task.task_done()
             time.sleep(0.1)
         self._queue_task.task_done()
-        
+
 
 class MultiTasking(object):
     """Multi-threaded of multi-tasks downloading, then process the data chunk.
@@ -294,14 +301,15 @@ class MultiTasking(object):
         """
         Arguments:
         - `threads_number`: int, number of threads to download.
-        - `opener`: function object, open the URL request and return data chunk,
+        - `opener`: function object,
+                    open the URL request and return data chunk,
                     e.g. PyFlitRequest.get_url_chunk() method.
         """
         self._threads_number = threads_number
         self._opener = opener
         self.queue_task = Queue()
         self.queue_chunk = Queue()
-        
+
     def _push_tasks(self, tasks=[]):
         """
         Arguments:
@@ -319,7 +327,7 @@ class MultiTasking(object):
         - `tasks`: list, HTTP URLs to fetch.
         """
         self._push_tasks(tasks)
-        
+
         for i in xrange(self._threads_number):
             task_thread = MultiTaskingThread(self._opener,
                                              self.queue_task,
@@ -340,15 +348,16 @@ class MultiTasking(object):
         time.sleep(0.3)
         self.queue_task.join()
         self.queue_chunk.join()
-        
+
 
 class SegmentingThread(Thread):
     """Multi-segment file downloading thread.
-    """    
+    """
     def __init__(self, opener, url_req, filename, ranges=0):
-        """        
+        """
         Arguments:
-        - `opener`: OpenerDirector object, call its open() method to open url request.
+        - `opener`: OpenerDirector object,
+                    call its open() method to open url request.
         - `url_req`: string, http request URL.
         - `filename`: string, output file name.
         - `ranges`: list, start to end mark of the url fetch range.
@@ -376,11 +385,12 @@ class SegmentingThread(Thread):
             # print "Part %s has been fetched over." % self._filename
             return
 
-        self.size_per_time = 16384 # 16KByte/time
+        self.size_per_time = 16384  # 16KByte/time
 
         # Add range to headers
         req = urllib2.Request(self._url_req)
-        req.add_header("Range", "bytes=%d-%d"%(self.startmark, self._ranges[1]))
+        req.add_header("Range",
+                       "bytes=%d-%d" % (self.startmark, self._ranges[1]))
         # IO
         self.chunkhandle = self._opener.open(req)
         chunk = self.chunkhandle.read(self.size_per_time)
@@ -397,26 +407,30 @@ class SegmentingThread(Thread):
 
 class MultiSegmenting(object):
     """Multi-segment file downloading for fetching big size file.
-    """    
+    """
     def __init__(self, opener):
         """
         Arguments:
-        - `opener`: OpenerDirector object, call its open() method to open url request.
+        - `opener`: OpenerDirector object,
+                    call its open() method to open url request.
         """
         self._opener = opener
         self.flitter = PyFlitRequest(self._opener)
-        
+
     def split_segment(self, url_size, segment_number):
         """Split file size into list tuple of segments with the giving number.
-        
+
         Arguments:
-        - `url_size`: int, total url file size, call `self.get_url_size()` method.
-        - `segment_number`: int, the numbers you want to separate the file size.
+        - `url_size`: int,
+                      total url file size, call `self.get_url_size()` method.
+        - `segment_number`: int,
+                            the numbers you want to separate the file size.
         """
         segment_size = url_size / segment_number
-        ranges = [(i*segment_size,
-                   (i+1)*segment_size-1) for i in xrange(segment_number-1)]
-        ranges.append((segment_size*(segment_number-1), url_size-1))
+        ranges = [(i * segment_size,
+                   (i + 1) * segment_size - 1)
+                  for i in xrange(segment_number - 1)]
+        ranges.append((segment_size * (segment_number - 1), url_size - 1))
         return ranges
 
     def _islive(self, tasks):
@@ -430,10 +444,13 @@ class MultiSegmenting(object):
         ranges = self.split_segment(url_size, segments)
         output = self.flitter.get_url_file_name(url_req)
         filename = ["%s_tmp_%d.pfb" % (output, i) for i in xrange(segments)]
-        
+
         tasks = []
         for i in xrange(segments):
-            task = SegmentingThread(self._opener, url_req, filename[i], ranges[i])
+            task = SegmentingThread(self._opener,
+                                    url_req,
+                                    filename[i],
+                                    ranges[i])
             task.start()
             tasks.append(task)
 
@@ -441,7 +458,7 @@ class MultiSegmenting(object):
         while self._islive(tasks):
             fetched = sum([task.fetched for task in tasks])
             utils.progressbar(url_size, fetched)
-        
+
         fileobj = open(output, 'wb+')
         try:
             for i in filename:
@@ -459,24 +476,27 @@ class MultiSegmenting(object):
 def flit_tasks(tasks, threads_number, opener=get_opener()):
     """Multiple tasks downloading and process the data chunk, mostly used
     when grabbing amount of web pages.
-    
+
     Arguments:
     - `tasks`: list, HTTP URLs to fetch.
     - `thread_number`: int, number of threads to download.
-    - `opener`: OpenerDirector object, call its open() method to open url request.
+    - `opener`: OpenerDirector object,
+                call its open() method to open url request.
     """
     request = PyFlitRequest(opener)
     flitter = MultiTasking(threads_number, request.get_url_chunk)
     chunks = flitter(tasks)
     return chunks
 
+
 def flit_segments(url_req, segment_number=2, opener=get_opener()):
     """Multiple segment file downloading, a replacement of wget. ;-)
-    
+
     Arguments:
     - `url_req`: string, http request URL.
     - `segment_number`: int, the numbers you want to separate the files.
-    - `opener`: OpenerDirector object, call its open() method to open url request.
+    - `opener`: OpenerDirector object,
+                call its open() method to open url request.
     """
     # Some proxy server couldn't support fetch range feature
     # reset segment_number to 1.
