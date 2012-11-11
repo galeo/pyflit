@@ -23,10 +23,10 @@ First, get self defined URL opener object, you can specify some handlers to supp
 Example:
 ```python
 handlers = [cookie_handler, redirect_handler]
-headers = {'User-Agent': 'Mozilla/5.0 ' \
-            '(Macintosh; Intel Mac OS X 10_8) ' \
-            'AppleWebKit/536.25 (KHTML, like Gecko) ' \
-            'Version/6.0 Safari/536.25'}
+headers = {'User-Agent': 'Mozilla/5.0 '
+           '(Macintosh; Intel Mac OS X 10_8_2) '
+           'AppleWebKit/536.26.17 (KHTML, like Gecko) '
+           'Version/6.0.2 Safari/536.26.17'}
 proxies = {'http': 'http://someproxy.com:8080'}
 
 opener = flit.get_opener(handlers, headers, proxies)
@@ -45,14 +45,14 @@ from pyflit import flit
 def chunk_process(chunk):
     """Output chunk information.
     """
-    print "Status_code: %s\n%s\n%s \nRead-Size: %s\nHistory: %s\n"%(
-            chunk['status_code'],
-            chunk['url'],
-            chunk['headers'],
-            len(chunk['content']),
-            chunk.get('history', None))
+    print "Status_code: %s\n%s\n%s \nRead-Size: %s\nHistory: %s\n" % (
+        chunk['status_code'],
+        chunk['url'],
+        chunk['headers'],
+        len(chunk['content']),
+        chunk.get('history', None))
 
-links = ['http://www.domain.com/post/%d/'%i for i in xrange(100, 200)]
+links = ['http://www.domain.com/post/%d/' % i for i in xrange(100, 200)]
 thread_number = 5
 opener = flit.get_opener([handlers [, headers [, proxies]]])
 chunks = flit.flit_tasks(links, thread_number, opener)
