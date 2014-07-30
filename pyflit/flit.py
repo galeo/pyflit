@@ -58,7 +58,7 @@ def get_opener(handlers=[], headers={}, proxies={}):
 
     opener = urllib2.build_opener(*_handlers)
 
-    ## Add HTTP Request Headers
+    # Add HTTP Request Headers
     # default HTTP Headers in configures
     _headers = settings.get('default_headers')
 
@@ -177,7 +177,7 @@ class PyFlitRequest(object):
                 resp = self._opener.open(url_req,
                                          timeout=self.config.get('timeout'))
             except TypeError, err:
-                if not 'timeout' in str(err):
+                if 'timeout' not in str(err):
                     raise
                 if self.config.get('timeout_fallback'):
                     old_timeout = socket.getdefaulttimeout()
@@ -470,7 +470,7 @@ class MultiSegmenting(object):
 
         time.sleep(0.5)
         while self._islive(tasks):
-            fetched = sum([task.fetched for task in tasks])
+            fetched = sum([t.fetched for t in tasks])
             utils.progressbar(url_size, fetched)
 
         fileobj = open(output, 'wb+')
