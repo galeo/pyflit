@@ -24,9 +24,9 @@ Example:
 ```python
 handlers = [cookie_handler, redirect_handler]
 headers = {'User-Agent': 'Mozilla/5.0 '
-           '(Macintosh; Intel Mac OS X 10_8_2) '
-           'AppleWebKit/536.26.17 (KHTML, like Gecko) '
-           'Version/6.0.2 Safari/536.26.17'}
+           '(Macintosh; Intel Mac OS X 10_9_4) '
+           'AppleWebKit/537.77.4 (KHTML, like Gecko) '
+           'Version/7.0.5 Safari/537.77.4'}
 proxies = {'http': 'http://someproxy.com:8080'}
 
 opener = flit.get_opener(handlers, headers, proxies)
@@ -36,7 +36,7 @@ resp = u.read()
 
 ### Multiple URLs fetching
 
-You can just call `flit.flit_tasks()` to fetch multiple URLs with specified working thread number, a generator will be returned and you can iterate it to process the data chunks. 
+You can just call `flit.flit_tasks()` to fetch multiple URLs with specified working thread number, a generator will be returned and you can iterate it to process the data chunks.
 
 Example:
 ```python
@@ -59,7 +59,7 @@ chunks = flit.flit_tasks(links, thread_number, opener)
 for chunk in chunks:
     chunk_process(chunk)
 ```
-  
+
 ### Multiple segment file downloading
 
 Multiple segment file downloading use multiple thread to download the separated part of the URL file, you can simply give two arguments: URL address and the segment number.

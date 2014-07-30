@@ -3,10 +3,11 @@
 import sys
 import utils
 
+
 default_user_agent = 'Mozilla/5.0 '\
-    '(Macintosh; Intel Mac OS X 10_6_8) '\
-    'AppleWebKit/534.57.2 (KHTML, like Gecko) '\
-    'Version/5.1.7 Safari/534.57.2'
+                     '(Macintosh; Intel Mac OS X 10_9_4) '\
+                     'AppleWebKit/537.77.4 (KHTML, like Gecko) '\
+                     'Version/7.0.5 Safari/537.77.4'
 
 # Replace the http proxy address
 proxies = {'http': 'http://127.0.0.1:8080'}
