@@ -45,7 +45,7 @@ def get_opener(handlers=[], headers={}, proxies={}):
         try:
             _handlers.append(urllib2.ProxyHandler(http_proxy))
         except Exception, e:
-            print "==> Waring: proxy invalid, please check."
+            print "\n==> Waring: proxy invalid, please check."
             print e
 
     # gzip/deflate/bzip2 compression handler
@@ -191,6 +191,8 @@ class PyFlitRequest(object):
             if hasattr(why, 'reason'):
                 if isinstance(why.reason, socket.timeout):
                     why = Timeout(why)
+
+            print "\n==> %s\n    when visit '%s'" % (why, url_req)
             is_error = True
             return (why, is_error)
         else:
@@ -293,7 +295,7 @@ class MultiTaskingThread(Thread):
                 if chunk:
                     self._queue_chunk.put(chunk)
             except:
-                print "==> Error fetching: %s" % url_req
+                print "\n==> Error fetching: %s" % url_req
                 pass
             finally:
                 # signals to queue that job is done
