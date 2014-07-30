@@ -13,7 +13,7 @@ from Queue import Queue
 
 import socket
 
-from graunching import Timeout, URLRequired, TooManyRedirects
+from graunching import RequestException, Timeout, URLRequired, TooManyRedirects
 import utils
 from configs import settings, codes
 
@@ -451,6 +451,10 @@ class MultiSegmenting(object):
 
     def __call__(self, url_req, segments=2):
         url_size = self.flitter.get_url_size(url_req)
+        if not url_size:
+            raise RequestException("Couldn't get file size from url\n[URL]: %s" %
+                                   url_req)
+
         ranges = self.split_segment(url_size, segments)
         output = self.flitter.get_url_file_name(url_req)
         filename = ["%s_tmp_%d.pfb" % (output, i) for i in xrange(segments)]
