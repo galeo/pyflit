@@ -213,30 +213,38 @@ class PyFlitRequest(object):
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
-        resp, is_error = self.get_url_response(url_req)
-        url_headers = resp.info()
-        return url_headers
+        chunk = self.get_url_chunk(url_req)
+        if chunk.get('error', ''):
+            return None
+
+        return chunk['headers']
 
     def get_url_size(self, url_req):
         """Get url content length from http response headers
-        or 0 if not exists.
+        or 0 if error occurs or not exists.
 
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
         headers = self.get_url_headers(url_req)
+        if not headers:
+            return 0
+
         content_length = headers.getheaders('Content-Length')
         length = content_length and int(content_length[0]) or 0
         return length
 
     def get_url_file_name(self, url_req):
         """Get output file name from the URL response headers or the URL.
+        Note that the method itself is not reliable.
 
         Arguments:
         - `url_req`: string, HTTP request URL or urllib2.Request object.
         """
-        resp, is_error = self.get_url_response(url_req)
-        headers = resp.info()
+        headers = self.get_url_headers(url_req)
+        if not headers:
+            return ''
+
         if 'Content-Disposition' in headers:
             cd = dict(map(lambda x: x.strip().split('=')
                           if '=' in x else (x.strip(), ''),
@@ -245,7 +253,7 @@ class PyFlitRequest(object):
                 filename = cd['filename'].strip("\"'")
                 if filename:
                     return filename
-        return os.path.basename(urlsplit(resp.url)[2])
+        return os.path.basename(urlsplit(headers['url'])[2])
 
 
 class MultiTaskingThread(Thread):
