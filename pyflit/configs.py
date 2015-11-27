@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import utils
+from . import utils
 
 
 default_user_agent = 'Mozilla/5.0 '\

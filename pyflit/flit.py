@@ -13,9 +13,14 @@ from Queue import Queue
 
 import socket
 
-from graunching import RequestException, Timeout, URLRequired, TooManyRedirects
-import utils
-from configs import settings, codes
+from .graunching import (
+    RequestException,
+    Timeout,
+    URLRequired,
+    TooManyRedirects
+)
+from . import utils
+from .configs import settings, codes
 
 
 REDIRECT_STATE = (codes.moved, codes.found, codes.other, codes.temporary_moved)
