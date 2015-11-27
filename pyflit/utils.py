@@ -91,7 +91,7 @@ def progressbar(total_volume, completed_volume, progress=0):
     current = int(progress / 100 * base)
     info = u'\r[ %s%s Total: %-8d Completed: %.2f%% ]' % (
         current * '#',
-        (base - current) * ' ',
+        int(base - current) * ' ',
         total_volume,
         progress)
     sys.stdout.write(info)
