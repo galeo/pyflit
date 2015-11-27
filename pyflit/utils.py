@@ -4,6 +4,7 @@
 Utility functions.
 """
 
+from urllib import addinfourl
 import urllib2
 
 # gzip/deflate/bzip2 support
@@ -54,10 +55,7 @@ class ContentEncodingProcessor(urllib2.BaseHandler):
             gz = bz2.decompress(resp.read())
 
         if gz:
-            resp = urllib2.addinfourl(gz,
-                                      old_resp.headers,
-                                      old_resp.url,
-                                      old_resp.code)
+            resp = addinfourl(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
         return resp
 
