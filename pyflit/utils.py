@@ -4,23 +4,34 @@
 Utility functions.
 """
 
-from urllib import addinfourl
-import urllib2
+import os
+import sys
+import time
 
 # gzip/deflate/bzip2 support
 from gzip import GzipFile
 import zlib
 import bz2
-from StringIO import StringIO
-
-import os
-import sys
-import time
 
 import pprint
 
 
-class ContentEncodingProcessor(urllib2.BaseHandler):
+PY2 = sys.version_info[0] == 2
+if PY2:
+    from urllib2 import BaseHandler, HTTPRedirectHandler
+    from urllib import addinfourl
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO import StringIO
+else:
+    from urllib.request import BaseHandler, HTTPRedirectHandler
+    from urllib.response import addinfourl
+    from io import BytesIO
+    StringIO = BytesIO
+
+
+class ContentEncodingProcessor(BaseHandler):
     """
     HTTP handler to add gzip/deflate/bzip2 capabilities to urllib2 requests.
     """
@@ -60,7 +71,7 @@ class ContentEncodingProcessor(urllib2.BaseHandler):
         return resp
 
 
-class HTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+class HTTPRedirectHandler(HTTPRedirectHandler):
     """HTTP redirect handler."""
     def http_error_301(self, req, fp, code, msg, headers):
         pass
