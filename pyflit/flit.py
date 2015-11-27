@@ -231,11 +231,11 @@ class PyFlitRequest(object):
         Arguments:
         - `url_req`: string, HTTP request URL or Request object.
         """
-        chunk = self.get_url_chunk(url_req)
-        if chunk.get('error', ''):
+        resp, is_error = self.get_url_response(url_req)
+        if is_error:
             return None
 
-        return chunk['headers']
+        return resp.info()
 
     def get_url_size(self, url_req):
         """Get url content length from http response headers
@@ -244,12 +244,21 @@ class PyFlitRequest(object):
         Arguments:
         - `url_req`: string, HTTP request URL or Request object.
         """
+        length = 0
         headers = self.get_url_headers(url_req)
-        if not headers:
-            return 0
 
-        content_length = headers.getheaders('Content-Length')
-        length = content_length and int(content_length[0]) or 0
+        if headers:
+            if PY2:
+                content_length = headers.getheaders('Content-Length')
+                if content_length:
+                    content_length = content_length[0]
+            else:
+                content_length = headers.get('Content-Length', 0)
+            length = content_length and int(content_length) or 0
+
+        if not length:
+            raise RequestException("Couldn't get file size from url\n[URL]: %s" %
+                                   url_req)
         return length
 
     def get_url_file_name(self, url_req):
@@ -259,11 +268,10 @@ class PyFlitRequest(object):
         Arguments:
         - `url_req`: string, HTTP request URL or Request object.
         """
-        headers = self.get_url_headers(url_req)
-        if not headers:
-            return ''
+        filename = ''
 
-        if 'Content-Disposition' in headers:
+        headers = self.get_url_headers(url_req)
+        if headers and 'Content-Disposition' in headers:
             cd = dict(map(lambda x: x.strip().split('=')
                           if '=' in x else (x.strip(), ''),
                           headers['Content-Disposition'].split(';')))
@@ -271,7 +279,17 @@ class PyFlitRequest(object):
                 filename = cd['filename'].strip("\"'")
                 if filename:
                     return filename
-        return os.path.basename(urlsplit(headers['url'])[2])
+
+        # try to get file name from the request url
+        if not filename:
+            resp, is_error = self.get_url_response(url_req)
+            if not is_error:
+                filename = os.path.basename(urlsplit(resp.geturl())[2])
+
+        if not filename:
+            raise RequestException("Couldn't get file name from url\n[URL]: %s" %
+                                   url_req)
+        return filename
 
 
 class MultiTaskingThread(Thread):
@@ -467,9 +485,6 @@ class MultiSegmenting(object):
 
     def __call__(self, url_req, segments=2):
         url_size = self.flitter.get_url_size(url_req)
-        if not url_size:
-            raise RequestException("Couldn't get file size from url\n[URL]: %s" %
-                                   url_req)
 
         ranges = self.split_segment(url_size, segments)
         output = self.flitter.get_url_file_name(url_req)
