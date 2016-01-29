@@ -1,6 +1,6 @@
 # README
 
-See the [PyFlit API Quick Reference](http://blog.galeo.me/post/29404048904/pyflit-api-quick-reference) for other usage help.
+Pyflit is a simple Python HTTP downloader. The features it supports are shown below.
 
 
 ## Features
