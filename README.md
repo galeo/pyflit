@@ -68,7 +68,7 @@ Example:
 ```python
 from pyflit import flit
 
-url = "https://dl.google.com/chrome/mac/stable/GGRO/googlechrome.dmg"
+url = "http://www.gnu.org/software/emacs/manual/pdf/emacs.pdf"
 segment_number = 2
 opener = flit.get_opener([handlers [, headers [, proxies]]])
 flit.flit_segments(url, segment_number, opener)
