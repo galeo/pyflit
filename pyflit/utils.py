@@ -88,13 +88,18 @@ def progressbar(total_volume, completed_volume, progress=0):
     """
     progress = completed_volume / float(total_volume) * 100
     base = get_terminal_size()[1] / 2
-    current = int(progress / 100 * base)
-    info = u'\r[ %s%s Total: %-8d(bytes) Completed: %.2f%% ]' % (
-        current * '#',
-        int(base - current) * ' ',
-        total_volume,
+    already = int(progress / 100 * base)
+    left = base - already
+    head = 1
+    if left == 0:
+        head = 0
+    bar = u'\r│%s%s%s│  Total: %-4.2fMB  Completed: %.2f%%' % (
+        already * u'█',
+        head * u'▎',
+        (left - head) * ' ',
+        total_volume / float(1024 * 1024),
         progress)
-    sys.stdout.write(info)
+    sys.stdout.write(bar)
     sys.stdout.flush()
     time.sleep(0.3)
 
