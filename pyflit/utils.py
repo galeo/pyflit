@@ -87,7 +87,7 @@ def progressbar(total_volume, completed_volume, progress=0):
     - `progress`: int, completed percent.
     """
     progress = completed_volume / float(total_volume) * 100
-    base = get_terminal_size()[1] / 2
+    base = int(get_terminal_size()[1] / 2)
     already = int(progress / 100 * base)
     left = base - already
     head = 1
