@@ -70,6 +70,9 @@ class ContentEncodingProcessor(BaseHandler):
             resp.msg = old_resp.msg
         return resp
 
+    https_request = http_request
+    https_response = http_response
+
 
 class HTTPRedirectHandler(HTTPRedirectHandler):
     """HTTP redirect handler."""
