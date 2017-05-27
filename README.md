@@ -13,6 +13,10 @@ Pyflit is a simple Python HTTP downloader. The features it supports are shown be
 + download pause and resume
 + proxy supporting
 
+## Don't use this package in production!
+
+This package is not well tested and buggy that should not be used in production!
+
 
 ## Simple Tutorial
 
